@@ -127,6 +127,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { margin: 0; }
 body {
   background: var(--page);
@@ -187,7 +188,7 @@ header.top button:not(.primary) { background: transparent; border-color: var(--h
 header.top button:not(.primary):hover { border-color: var(--hdr-muted); }
 header.top input[type="checkbox"] { accent-color: var(--dp-red); }
 
-main { padding: 24px 24px 48px; max-width: 1720px; margin: 0 auto; display: grid; gap: 20px; }
+main { padding: 24px 24px 48px; max-width: 1720px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-sm); }
 
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
@@ -195,6 +196,35 @@ main { padding: 24px 24px 48px; max-width: 1720px; margin: 0 auto; display: grid
 .toolbar .day .eyebrow { margin-bottom: 2px; }
 .toolbar .day b { font-weight: 600; font-size: 20px; line-height: 1.25; }
 .toolbar .day small { color: var(--muted); font-size: 12.5px; }
+/* Popovers use fixed positioning so the scrolling timeline doesn't clip them. */
+.pop {
+  position: fixed; z-index: 50; background: var(--panel); color: var(--text); border: 1px solid var(--line);
+  border-radius: var(--r-md); box-shadow: var(--shadow-md); padding: 8px;
+  font-size: 13px; font-weight: 400; letter-spacing: normal; text-transform: none;
+}
+.pop[hidden] { display: none; }
+.pf-pop { width: 300px; display: flex; flex-direction: column; gap: 6px; }
+.pf-pop[hidden] { display: none; }
+.pf-pop input[type="search"] { width: 100%; }
+.pf-list { max-height: 300px; overflow: auto; display: flex; flex-direction: column; }
+.pf-item { display: flex; align-items: center; gap: 10px; padding: 6px 6px; border-radius: var(--r-sm); cursor: pointer; }
+.pf-item:hover { background: var(--me-row); }
+.pf-item input { accent-color: var(--dp-red); margin: 0; }
+.pf-item .who { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-item .who b { font-weight: 600; }
+.pf-item .zone { font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+.pf-item.me { cursor: default; }
+.pf-empty { padding: 8px 6px; color: var(--muted); }
+.pf-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 12px; }
+.zpop { width: 340px; max-height: 340px; overflow: auto; padding: 6px; }
+.zg { font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); padding: 8px 8px 4px; }
+.zi { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: baseline; padding: 6px 8px; border-radius: var(--r-sm); cursor: pointer; }
+.zi .zc { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.zi .zc b { font-weight: 600; }
+.zi .za { font-weight: 600; font-size: 12px; }
+.zi .zo { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 64px; text-align: right; }
+.zi.on { background: var(--me-row); }
+.zi.cur .za { color: var(--dp-red); }
 .eyebrow { font-size: 10px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--dp-red); }
 
 /* ---------- timeline ---------- */
@@ -202,7 +232,31 @@ main { padding: 24px 24px 48px; max-width: 1720px; margin: 0 auto; display: grid
 .tl { min-width: 1240px; position: relative; user-select: none; -webkit-user-select: none; }
 .tl-head, .row { display: grid; grid-template-columns: var(--info-w) 1fr var(--meet-w); }
 .tl-head { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .16em; border-bottom: 1px solid var(--line); }
-.tl-head > div { padding: 10px 14px; }
+.tl-head > div { padding: 10px 14px; display: flex; align-items: center; }
+.th-person { gap: 10px; }
+.pf { min-width: 0; flex: 1; }
+#pfBtn { width: 100%; max-width: 160px; justify-content: space-between; text-transform: none; letter-spacing: normal; padding: 5px 9px; }
+#pfBtn span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pfBtn.active { border-color: var(--text); }
+.tl-head > .th-mid { position: relative; padding: 0; height: 56px; }
+/* Meeting time bar: red like the selection it controls, with a pointer down to it. */
+.mt {
+  position: absolute; bottom: 9px; left: 0; display: flex; align-items: center; gap: 6px; padding: 5px 6px;
+  background: var(--sel-chip); color: #fff; border-radius: var(--r-md); box-shadow: var(--shadow-md); white-space: nowrap; z-index: 6;
+  font-size: 13px; font-weight: 600; letter-spacing: normal; text-transform: none;
+}
+.mt::after { content: ""; position: absolute; top: 100%; left: var(--arrow, 50%); transform: translateX(-50%); border: 6px solid transparent; border-top-color: var(--sel-chip); }
+.mt input, .mt button { background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .45); color: #fff; font-weight: 600; font-size: 13px; padding: 4px 8px; border-radius: var(--r-sm); }
+.mt input::placeholder { color: rgba(255, 255, 255, .7); }
+.mt input:focus, .mt input:focus-visible, .mt button:focus-visible { outline: 2px solid #fff; outline-offset: 1px; background: rgba(255, 255, 255, .22); }
+.mt input.bad { background: rgba(0, 0, 0, .3); border-style: dashed; }
+.mt .tz { width: 190px; }
+.mt .tm { width: 70px; text-align: center; font-variant-numeric: tabular-nums; }
+:root.h12 .mt .tm { width: 86px; }
+.mt .plus { font-size: 11px; font-weight: 700; }
+.mt .plus:empty { display: none; }
+.mt button { padding: 4px 9px; font-size: 12px; }
+.mt button:hover { border-color: #fff; }
 .rows { position: relative; padding-bottom: 32px; }
 .row { height: var(--row-h); border-bottom: 1px solid var(--line); }
 .info { padding: 4px 14px; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 0; min-width: 0; }
@@ -385,7 +439,38 @@ dialog::backdrop { background: rgba(21, 33, 46, .55); }
     </div>
     <div class="tl-wrap">
       <div class="tl" id="tl">
-        <div class="tl-head"><div>Person</div><div id="tlHeadMid">Timeline — drag to propose a meeting</div><div>Meeting (local)</div></div>
+        <div class="tl-head">
+          <div class="th-person">
+            <span>Person</span>
+            <div class="pf" id="pf">
+              <button type="button" id="pfBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="pfPop" aria-label="Filter people">
+                <span id="pfLabel">Everyone</span>
+                <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="pop pf-pop" id="pfPop" role="dialog" aria-label="Filter people" hidden>
+                <input type="search" id="pfSearch" placeholder="Search people" aria-label="Search people" autocomplete="off">
+                <div class="pf-list" id="pfList"></div>
+                <div class="pf-foot">
+                  <span class="muted" id="pfCount"></span>
+                  <button type="button" id="pfAll">Show everyone</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="th-mid" id="tlHeadMid">
+            <!-- Meeting time bar: floats above the red selection and mirrors it -->
+            <div class="mt" id="mt" role="group" aria-label="Meeting time">
+              <input id="mZone" class="tz" role="combobox" aria-expanded="false" aria-controls="zPop" aria-autocomplete="list"
+                     autocomplete="off" spellcheck="false" aria-label="Time zone for the meeting time" title="Type a city, abbreviation (IST), offset (+5:30) or name">
+              <input id="mStart" class="tm" autocomplete="off" spellcheck="false" aria-label="Meeting start" title="Type 9, 9:30, 930 or 2pm">
+              <span aria-hidden="true">–</span>
+              <input id="mEnd" class="tm" autocomplete="off" spellcheck="false" aria-label="Meeting end" title="Type 11, 11:30, 1130 or 5pm">
+              <span class="plus" id="mPlus"></span>
+              <button type="button" id="mMine" title="Reset to your time zone">My time</button>
+            </div>
+          </div>
+          <div>Meeting (local)</div>
+        </div>
         <div class="rows" id="rows">
           <div id="rowList"></div>
           <div class="layer" id="layer">
@@ -453,6 +538,7 @@ dialog::backdrop { background: rgba(21, 33, 46, .55); }
 </dialog>
 
 <datalist id="tzlist"></datalist>
+<div class="pop zpop" id="zPop" role="listbox" aria-label="Time zones" hidden></div>
 <div class="toast" id="toast"></div>
 <div class="drop" id="drop">Drop a YAML config to import</div>
 
@@ -851,16 +937,32 @@ function saveConfig() { store.set(LS_CFG, JSON.stringify(cfg)); }
    State
    --------------------------------------------------------------------- */
 let cfg = loadConfig();
-const state = { dateStr: '', dayStart: 0, dayEnd: 0, totalMin: 1440, sel: { start: 540, dur: 60 } };
+// View state (per browser, not part of the exported config): selection, people filter, meeting-time zone.
+const state = { dateStr: '', dayStart: 0, dayEnd: 0, totalMin: 1440, sel: { start: 540, dur: 60 }, filter: [], refTz: '' };
 (() => {
   try {
     const v = JSON.parse(store.get(LS_VIEW) || 'null');
     if (v && Number.isFinite(v.start) && Number.isFinite(v.dur)) state.sel = { start: v.start, dur: v.dur };
     else state.sel = { start: parseWH(cfg.me.workHours).s + 60 * 4, dur: cfg.settings.defaultMeetingMinutes };
+    if (v && Array.isArray(v.filter)) state.filter = v.filter.filter((k) => typeof k === 'string');
+    if (v && validTz(v.refTz)) state.refTz = v.refTz;
   } catch { /* ignore */ }
 })();
-const saveView = () => store.set(LS_VIEW, JSON.stringify(state.sel));
+const saveView = () => store.set(LS_VIEW, JSON.stringify({ ...state.sel, filter: state.filter, refTz: state.refTz }));
 const allPeople = () => [{ ...cfg.me, isMe: true }, ...cfg.people];
+/** Identifies a person across edits/reorders for the filter (name + time zone). */
+const personKey = (p) => `${p.name}\u0001${p.timezone}`;
+/** You, plus either everyone (empty filter) or only the people ticked in the filter. */
+function visiblePeople() {
+  const keys = new Set(state.filter);
+  const others = keys.size ? cfg.people.filter((p) => keys.has(personKey(p))) : cfg.people;
+  return [{ ...cfg.me, isMe: true }, ...others];
+}
+/** Drop filter entries whose person was removed or renamed. */
+function pruneFilter() {
+  const live = new Set(cfg.people.map(personKey));
+  state.filter = state.filter.filter((k) => live.has(k));
+}
 function todayStr() { const w = wall(cfg.me.timezone, Date.now()); return `${w.y}-${pad(w.mo)}-${pad(w.d)}`; }
 function shiftDate(str, days) {
   const [y, m, d] = str.split('-').map(Number);
@@ -969,7 +1071,7 @@ function rowHTML(p, idx) {
 }
 function overlapHTML() {
   const { dayStart, totalMin } = state;
-  const list = allPeople().map((p) => ({ p, wh: parseWH(p.workHours) }));
+  const list = visiblePeople().map((p) => ({ p, wh: parseWH(p.workHours) }));
   const awake = parseWH(cfg.settings.awakeHours);
   const slots = Math.ceil(totalMin / SLOT);
   const segs = [];
@@ -993,7 +1095,7 @@ function overlapHTML() {
   return `<div class="row overlap"><div class="info"><div class="n">Overlap</div></div><div class="track">${track}</div><div class="meet"><div class="s" id="overlapVerdict"></div></div></div>`;
 }
 function renderRows() {
-  rowList.innerHTML = allPeople().map(rowHTML).join('') + overlapHTML();
+  rowList.innerHTML = visiblePeople().map(rowHTML).join('') + overlapHTML();
 }
 function renderHead() {
   const w = wall(cfg.me.timezone, state.dayStart + 12 * 60 * MIN);
@@ -1034,11 +1136,12 @@ function renderSel() {
   selEl.style.width = (S.dur / T) * 100 + '%';
   const s = state.dayStart + S.start * MIN;
   const ws = wall(cfg.me.timezone, s), we = wall(cfg.me.timezone, s + S.dur * MIN);
-  $('#selLabel').textContent = `${fmtW(ws)} – ${fmtW(we)} · ${fmtDur(S.dur)}`;
+  // Times are in the red bar above; the label under the box only shows the length.
+  $('#selLabel').textContent = fmtDur(S.dur);
   const len = $('#lenSel');
   len.value = [...len.options].some((o) => o.value === String(S.dur)) ? String(S.dur) : 'custom';
 
-  const people = allPeople();
+  const people = visiblePeople();
   const infos = people.map(meetingInfo);
   rowList.querySelectorAll('.row[data-i]').forEach((row) => {
     const i = +row.dataset.i, m = infos[i];
@@ -1054,6 +1157,7 @@ function renderSel() {
   const ov = $('#overlapVerdict');
   if (ov) ov.innerHTML = verdict;
   renderSummary(people, infos, ws, we, s, verdict);
+  syncMeetingForm();
 }
 function summaryText(people, infos, ws, we, s) {
   const S = state.sel;
@@ -1106,8 +1210,11 @@ function renderNow() {
   } else el.style.display = 'none';
 }
 function renderAll() {
+  pruneFilter();
   computeDay();
   renderHead();
+  renderFilter();
+  document.documentElement.classList.toggle('h12', !!cfg.settings.hour12);
   renderRows();
   renderSel();
   renderNow();
@@ -1212,6 +1319,324 @@ $('#lenSel').onchange = (e) => {
   S.start = clamp(S.start, 0, state.totalMin - S.dur);
   renderSel(); saveView();
 };
+
+/* ---------------------------------------------------------------------
+   Popover placement (fixed, so the horizontally scrolling timeline can't clip it)
+   --------------------------------------------------------------------- */
+const openPops = new Map(); // popover element -> anchor element
+function placePopover(pop, anchor) {
+  const r = anchor.getBoundingClientRect(), vw = innerWidth, vh = innerHeight;
+  pop.style.left = clamp(r.left, 8, Math.max(8, vw - pop.offsetWidth - 8)) + 'px';
+  const below = vh - r.bottom - 8;
+  if (pop.offsetHeight > below && r.top > below) { pop.style.top = ''; pop.style.bottom = (vh - r.top + 6) + 'px'; }
+  else { pop.style.bottom = ''; pop.style.top = (r.bottom + 6) + 'px'; }
+}
+function showPopover(pop, anchor) { pop.hidden = false; openPops.set(pop, anchor); placePopover(pop, anchor); }
+function hidePopover(pop) { pop.hidden = true; openPops.delete(pop); }
+const replaceAll = () => openPops.forEach((a, p) => placePopover(p, a));
+addEventListener('resize', replaceAll);
+addEventListener('scroll', replaceAll, true);
+
+/* ---------------------------------------------------------------------
+   People filter (dropdown next to the "Person" column title)
+   --------------------------------------------------------------------- */
+const pfBtn = $('#pfBtn'), pfPop = $('#pfPop'), pfList = $('#pfList'), pfSearch = $('#pfSearch');
+function renderFilter() {
+  const sel = new Set(state.filter), n = sel.size, total = cfg.people.length;
+  const names = cfg.people.filter((p) => sel.has(personKey(p))).map((p) => p.name);
+  $('#pfLabel').textContent = !n ? 'Everyone' : n <= 2 ? names.join(', ') : `${n} of ${total} people`;
+  pfBtn.classList.toggle('active', n > 0);
+  pfBtn.title = n ? `Showing you and ${names.join(', ')}` : 'Showing everyone';
+  $('#pfCount').textContent = n ? `${n} selected` : 'None selected: showing everyone';
+  if (!pfPop.hidden) renderFilterList();
+}
+function renderFilterList() {
+  const q = pfSearch.value.trim().toLowerCase(), sel = new Set(state.filter), t = state.dayStart + state.sel.start * MIN;
+  const match = (p) => !q || `${p.name} ${p.city} ${p.timezone}`.toLowerCase().includes(q);
+  const zone = (p) => `${esc(p.city)} · ${esc(abbrFor(p, t))}`;
+  const rows = cfg.people.map((p, i) => (match(p) ? `
+    <label class="pf-item"><input type="checkbox" data-k="${i}"${sel.has(personKey(p)) ? ' checked' : ''}>
+      <span class="who"><b>${esc(p.name)}</b></span><span class="zone">${zone(p)}</span></label>` : '')).join('');
+  pfList.innerHTML =
+    `<label class="pf-item me" title="You are always shown"><input type="checkbox" checked disabled>
+      <span class="who"><b>${esc(cfg.me.name)}</b> <span class="chip">YOU</span></span><span class="zone">${zone(cfg.me)}</span></label>` +
+    (rows || `<div class="pf-empty">${cfg.people.length ? 'No one matches.' : 'No people yet. Add them with Edit people.'}</div>`);
+  if (!pfPop.hidden) placePopover(pfPop, pfBtn);
+}
+function setFilterOpen(open) {
+  pfBtn.setAttribute('aria-expanded', String(open));
+  if (!open) { hidePopover(pfPop); return; }
+  pfSearch.value = ''; renderFilterList(); showPopover(pfPop, pfBtn); pfSearch.focus();
+}
+pfBtn.onclick = () => setFilterOpen(pfPop.hidden);
+pfSearch.oninput = renderFilterList;
+pfList.addEventListener('change', (e) => {
+  const cb = e.target.closest('input[data-k]');
+  if (!cb) return;
+  const k = personKey(cfg.people[+cb.dataset.k]);
+  state.filter = cb.checked ? [...new Set([...state.filter, k])] : state.filter.filter((x) => x !== k);
+  saveView(); renderAll();
+});
+$('#pfAll').onclick = () => { state.filter = []; saveView(); renderAll(); };
+document.addEventListener('pointerdown', (e) => { if (!pfPop.hidden && !e.target.closest('#pf, #pfPop')) setFilterOpen(false); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pfPop.hidden) { setFilterOpen(false); pfBtn.focus(); } });
+
+/* ---------------------------------------------------------------------
+   Meeting time bar: a red bar above the selection to type the meeting time in any
+   zone (e.g. "9–11 Eastern"). It mirrors the selection, so dragging updates it too.
+   Typed times apply to the day chosen in the date picker (your day).
+   --------------------------------------------------------------------- */
+const COMMON_ZONES = [
+  ['America/New_York', 'US Eastern (New York)'], ['America/Chicago', 'US Central (Chicago)'],
+  ['America/Denver', 'US Mountain (Denver)'], ['America/Los_Angeles', 'US Pacific (Los Angeles)'],
+  ['America/Sao_Paulo', 'Brazil (São Paulo)'], ['Europe/London', 'UK (London)'], ['Europe/Paris', 'Central Europe (Paris)'],
+  ['Europe/Helsinki', 'Eastern Europe (Helsinki)'], ['Asia/Dubai', 'Gulf (Dubai)'], ['Asia/Kolkata', 'India (Kolkata)'],
+  ['Asia/Singapore', 'Singapore'], ['Asia/Tokyo', 'Japan (Tokyo)'], ['Australia/Sydney', 'Australia East (Sydney)'], ['UTC', 'UTC'],
+];
+const mt = $('#mt'), mZone = $('#mZone'), zPop = $('#zPop'), mStart = $('#mStart'), mEnd = $('#mEnd'), mPlus = $('#mPlus');
+const refTz = () => (validTz(state.refTz) ? state.refTz : cfg.me.timezone);
+/** A person-like object for abbreviations, so a teammate's abbr override applies to their zone. */
+const zoneObj = (tz) => allPeople().find((p) => p.timezone === tz) || { timezone: tz };
+const selStartMs = () => state.dayStart + state.sel.start * MIN;
+function zoneLabel(tz) {
+  const p = allPeople().find((x) => x.timezone === tz);
+  if (p) return p.city;
+  const c = COMMON_ZONES.find(([z]) => z === tz);
+  return c ? c[1] : cityFromTz(tz);
+}
+const zoneDisplay = (tz = refTz()) => `${zoneLabel(tz)} · ${abbrFor(zoneObj(tz), selStartMs())}`;
+
+/* --- time zone search (combobox) --- */
+let zoneIdsCache = null;
+function zoneIds() {
+  if (!zoneIdsCache) {
+    try { zoneIdsCache = Intl.supportedValuesOf('timeZone'); } catch { zoneIdsCache = []; }
+    if (!zoneIdsCache.length) zoneIdsCache = Object.keys(ABBR);
+  }
+  return zoneIdsCache;
+}
+/** Every zone with its current, winter and summer abbreviations: team first, then common, then all. */
+function zoneCandidates() {
+  const t = selStartMs(), y = wall('UTC', t).y, jan = Date.UTC(y, 0, 15), jul = Date.UTC(y, 6, 15);
+  const team = new Map();
+  for (const p of allPeople()) {
+    const e = team.get(p.timezone) || { city: p.city, names: [] };
+    e.names.push(p.isMe ? 'You' : p.name);
+    team.set(p.timezone, e);
+  }
+  const out = [], seen = new Set();
+  const add = (tz, group, label, names = []) => {
+    if (seen.has(tz)) return;
+    seen.add(tz);
+    try {
+      const z = zoneObj(tz), ab = abbrFor(z, t);
+      out.push({ tz, group, label, names, ab, abs: [...new Set([ab, abbrFor(z, jan), abbrFor(z, jul)])].map((a) => a.toUpperCase()), off: fmtOff(offsetMin(tz, t)) });
+    } catch { /* zone unknown to this browser */ }
+  };
+  team.forEach((e, tz) => add(tz, 'Team', e.city, e.names));
+  COMMON_ZONES.forEach(([tz, l]) => add(tz, 'Common', l));
+  for (const tz of zoneIds()) add(tz, 'All', cityFromTz(tz));
+  return out;
+}
+const escRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function searchZones(list, q) {
+  q = q.trim();
+  if (!q) return list.filter((z) => z.group !== 'All');
+  const Q = q.toUpperCase(), ql = q.toLowerCase(), wordStart = new RegExp('(^|[\\s/|(,·-])' + escRe(ql));
+  const rank = { Team: 0, Common: 1, All: 2 }, hits = [];
+  for (const z of list) {
+    const hay = [z.label, z.tz.replace(/_/g, ' '), ...z.names, z.off].join(' | ').toLowerCase();
+    const score = z.abs.includes(Q) ? 0
+      : Q.length >= 2 && z.abs.some((a) => a.startsWith(Q)) ? 1
+      : wordStart.test(hay) ? 2
+      : hay.includes(ql) ? 3 : -1;
+    if (score >= 0) hits.push([score, z]);
+  }
+  hits.sort((a, b) => a[0] - b[0] || rank[a[1].group] - rank[b[1].group] || a[1].label.localeCompare(b[1].label));
+  // Mid-word matches ("ist" in "Boa Vista") are noise once there are real matches.
+  const best = hits.length ? hits[0][0] : 3;
+  return hits.filter((h) => h[0] < 3 || best === 3).slice(0, 60).map((h) => h[1]);
+}
+let zList = [], zItems = [], zActive = 0;
+function renderZoneList() {
+  zItems = searchZones(zList, mZone.dataset.q || '');
+  zActive = clamp(zActive, 0, Math.max(0, zItems.length - 1));
+  if (!zItems.length) {
+    zPop.innerHTML = '<div class="pf-empty">No matching time zone. Try a city, an abbreviation (IST) or an offset (+5:30).</div>';
+  } else {
+    let html = '', last = '';
+    zItems.forEach((z, i) => {
+      const g = z.group === 'All' ? 'Time zones' : z.group;
+      if (g !== last) { html += `<div class="zg">${g}</div>`; last = g; }
+      const sub = z.names.length ? ` <span class="muted">· ${esc(z.names.join(', '))}</span>`
+        : z.group === 'All' && z.tz.includes('/') ? ` <span class="muted">${esc(z.tz.split('/')[0])}</span>` : '';
+      html += `<div class="zi${i === zActive ? ' on' : ''}${z.tz === refTz() ? ' cur' : ''}" role="option" id="zi${i}" data-i="${i}" aria-selected="${i === zActive}" title="${esc(z.tz)}">
+        <span class="zc"><b>${esc(z.label)}</b>${sub}</span><span class="za">${esc(z.ab)}</span><span class="zo">${esc(z.off)}</span></div>`;
+    });
+    zPop.innerHTML = html;
+    mZone.setAttribute('aria-activedescendant', 'zi' + zActive);
+    const on = zPop.querySelector('.zi.on');
+    if (on) on.scrollIntoView({ block: 'nearest' });
+  }
+  placePopover(zPop, mZone);
+}
+function openZoneList() {
+  zList = zoneCandidates();
+  mZone.dataset.q = ''; zActive = 0;
+  showPopover(zPop, mZone);
+  mZone.setAttribute('aria-expanded', 'true');
+  renderZoneList();
+}
+function closeZoneList() {
+  hidePopover(zPop);
+  mZone.setAttribute('aria-expanded', 'false');
+  mZone.removeAttribute('aria-activedescendant');
+  mZone.value = zoneDisplay();
+}
+function pickZone(tz) {
+  state.refTz = tz;
+  saveView();
+  if (!zPop.hidden) closeZoneList();
+  renderSel();
+}
+mZone.addEventListener('focus', () => { openZoneList(); mZone.select(); });
+mZone.addEventListener('input', () => {
+  if (zPop.hidden) openZoneList();
+  mZone.dataset.q = mZone.value; zActive = 0; renderZoneList();
+});
+mZone.addEventListener('click', () => { if (zPop.hidden) { openZoneList(); mZone.select(); } });
+mZone.addEventListener('keydown', (e) => {
+  if (zPop.hidden && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { openZoneList(); e.preventDefault(); return; }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    zActive = clamp(zActive + (e.key === 'ArrowDown' ? 1 : -1), 0, zItems.length - 1);
+    renderZoneList(); e.preventDefault();
+  } else if (e.key === 'Enter') {
+    if (zItems[zActive]) { pickZone(zItems[zActive].tz); mStart.focus(); }
+    e.preventDefault();
+  } else if (e.key === 'Escape') {
+    closeZoneList(); mZone.blur();
+  }
+});
+mZone.addEventListener('blur', () => { if (!zPop.hidden) closeZoneList(); });
+// pointerdown + preventDefault keeps focus in the input until the pick is made
+zPop.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  const it = e.target.closest('.zi');
+  if (it) pickZone(zItems[+it.dataset.i].tz);
+});
+$('#mMine').onclick = () => pickZone(cfg.me.timezone);
+// Warm the abbreviation caches when idle so the first search is instant.
+(window.requestIdleCallback || ((f) => setTimeout(f, 800)))(() => { try { zoneCandidates(); } catch { /* ignore */ } });
+
+/* --- typed times: "9" → 09:00, "3:30", "930", "2pm", "9.15" --- */
+function parseTimeInput(str) {
+  const m = String(str).trim().toLowerCase().replace(/\s+/g, '').match(/^(\d{1,2})(?:[:.h]?(\d{2}))?(am|pm|a|p)?$/);
+  if (!m) return null;
+  let h = +m[1];
+  const mi = m[2] ? +m[2] : 0, ap = m[3] ? m[3][0] : '';
+  if (mi > 59) return null;
+  if (ap) {
+    if (h < 1 || h > 12) return null;
+    h = (h % 12) + (ap === 'p' ? 12 : 0);
+  } else if (cfg.settings.hour12 && h >= 1 && h <= 12) {
+    // 12-hour mode without am/pm: assume business hours (8–11 am, 12–7 pm).
+    h = h === 12 ? 12 : h < 8 ? h + 12 : h;
+  }
+  if (h === 24 && mi === 0) h = 0;
+  return h > 23 ? null : { h, mi };
+}
+const ymd = (w) => `${w.y}-${pad(w.mo)}-${pad(w.d)}`;
+/** Instant for a wall time in tz on a date, or null if it doesn't exist (DST gap). */
+function wallToInstant(tz, dateStr, h, mi) {
+  const [y, mo, d] = dateStr.split('-').map(Number);
+  const t = zonedToUtc(tz, y, mo, d, h, mi), w = wall(tz, t);
+  return w.h === h && w.mi === mi ? t : null;
+}
+/** When tz's clock shows h:mi during your viewed day (the date picker's day). */
+function occurrenceInDay(tz, h, mi) {
+  const d0 = ymd(wall(tz, state.dayStart));
+  for (const k of [0, 1, -1]) {
+    const t = wallToInstant(tz, shiftDate(d0, k), h, mi);
+    if (t != null && t >= state.dayStart && t < state.dayEnd) return t;
+  }
+  return null;
+}
+/** The first time after `after` that tz's clock shows h:mi. */
+function nextOccurrenceAfter(tz, h, mi, after) {
+  const d0 = ymd(wall(tz, after));
+  for (const k of [0, 1, 2]) {
+    const t = wallToInstant(tz, shiftDate(d0, k), h, mi);
+    if (t != null && t > after) return t;
+  }
+  return null;
+}
+/** Apply a typed start (keeps the length, like a calendar) or end (resizes). */
+function applyMeetingTime(which, { h, mi }) {
+  const tz = refTz(), S = state.sel;
+  let s = selStartMs(), e;
+  if (which === 'start') {
+    const t = occurrenceInDay(tz, h, mi);
+    if (t == null) { toast(`${fmtT(h, mi)} ${zoneDisplay()} isn't on this day (clock change?)`); return false; }
+    s = t; e = s + S.dur * MIN;
+  } else {
+    e = nextOccurrenceAfter(tz, h, mi, s);
+    if (e == null) { toast(`${fmtT(h, mi)} doesn't exist in ${zoneLabel(tz)} that day (clock change)`); return false; }
+    // An end "before" the start rolls over midnight (fine for 23:00–01:00); a huge result is likely a typo.
+    if (e - s > 12 * 60 * MIN) { toast(`That would make it ${fmtDur(Math.round((e - s) / MIN))} long. Type an end after ${fmtW(wall(tz, s))}`); return false; }
+  }
+  let start = Math.round((s - state.dayStart) / MIN), dur = Math.max(5, Math.round((e - s) / MIN));
+  start = Math.min(start, state.totalMin - 5);
+  if (start + dur > state.totalMin) {
+    dur = state.totalMin - start;
+    toast(`Runs past midnight your time; showing until 00:00 (${fmtDur(dur)})`);
+  }
+  state.sel = { start, dur };
+  saveView();
+  renderSel();
+  return true;
+}
+function commitTime(el) {
+  const v = parseTimeInput(el.value);
+  if (!v) { el.classList.add('bad'); toast('Type a time like 9, 9:30, 930 or 2pm'); return; }
+  const ok = applyMeetingTime(el === mStart ? 'start' : 'end', v);
+  el.classList.toggle('bad', !ok);
+  if (ok) {
+    const tz = refTz(), s = selStartMs();
+    el.value = fmtW(wall(tz, el === mStart ? s : s + state.sel.dur * MIN));
+  }
+}
+for (const el of [mStart, mEnd]) {
+  el.addEventListener('focus', () => el.select());
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { commitTime(el); e.preventDefault(); }
+    else if (e.key === 'Escape') { el.classList.remove('bad'); el.blur(); }
+  });
+  el.addEventListener('change', () => commitTime(el));
+  el.addEventListener('blur', () => { if (el.classList.contains('bad')) { el.classList.remove('bad'); } syncMeetingForm(); });
+}
+
+/** Write the selection, in the chosen zone, into the bar and keep the bar above the red box. */
+function syncMeetingForm() {
+  const tz = refTz(), s = selStartMs(), e = s + state.sel.dur * MIN;
+  const ws = wall(tz, s), we = wall(tz, e), active = document.activeElement;
+  if (active !== mZone) mZone.value = zoneDisplay(tz);
+  if (active !== mStart) mStart.value = fmtW(ws);
+  if (active !== mEnd) mEnd.value = fmtW(we);
+  const nextDay = dayDiff(we, ws) > 0 && !(we.h === 0 && we.mi === 0 && dayDiff(we, ws) === 1);
+  mPlus.textContent = nextDay ? '+1 day' : '';
+  mEnd.title = `Ends ${fmtDateShort(we)} ${fmtW(we)}. Type 11, 11:30, 1130 or 5pm`;
+  $('#mMine').hidden = tz === cfg.me.timezone;
+  positionMeetingBar();
+}
+function positionMeetingBar() {
+  const col = $('#tlHeadMid'), cw = col.clientWidth, bw = mt.offsetWidth, S = state.sel;
+  if (!cw) return;
+  const center = ((S.start + S.dur / 2) / state.totalMin) * cw;
+  const left = clamp(center - bw / 2, 0, Math.max(0, cw - bw));
+  mt.style.left = left + 'px';
+  mt.style.setProperty('--arrow', clamp(center - left, 10, bw - 10) + 'px');
+}
+if (window.ResizeObserver) new ResizeObserver(positionMeetingBar).observe($('#tlHeadMid'));
 
 /* ---------------------------------------------------------------------
    Theme switch: System → Light → Dark (a per-browser preference, not part of the config)
